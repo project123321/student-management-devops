@@ -1,5 +1,5 @@
 import pytest
-from app import app, students, users
+from app import app
 
 @pytest.fixture
 def client():
@@ -7,21 +7,26 @@ def client():
     with app.test_client() as client:
         yield client
 
-def test_login_page_loads(client):
-    response = client.get('/login')
-    assert response.status_code == 200
+def test_home_redirect(client):
+    response = client.get('/')
+    assert response.status_code == 302
 
-def test_login_success(client):
-    response = client.post('/login', data={'username': 'admin', 'password': 'password123'}, follow_redirects=True)
+def test_login_page(client):
+    response = client.get('/login')
     assert response.status_code == 200
 
 def test_add_student(client):
     with client.session_transaction() as sess:
-        sess['user'] = 'admin'
-    response = client.post('/add', data={
+        sess['user'] = 'admin@example.com'
+        
+    response = client.post('/add_student', data={
+        'student_id': '999',
         'name': 'Test Student',
-        'roll': '999',
-        'marks': '90',
-        'attendance': 'Present'
+        'email': 'teststudent@example.com',
+        'phone': '+91 9876543210',
+        'department': 'Computer Science',
+        'course': 'B.E. CS',
+        'admission_date': '2024-08-01'
     }, follow_redirects=True)
+    
     assert response.status_code == 200

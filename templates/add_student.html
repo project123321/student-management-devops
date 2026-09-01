@@ -1,54 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Add Student - Student Management System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>Add Student - Student Management System</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { min-height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, #0f172a, #1e293b); padding: 20px; }
+    .card { background: rgba(255, 255, 255, 0.95); padding: 35px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 100%; max-width: 600px; }
+    .card h2 { text-align: center; margin-bottom: 20px; color: #0f172a; }
+    .section-title { font-size: 14px; font-weight: 700; color: #2563eb; margin: 15px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .form-group { margin-bottom: 12px; text-align: left; }
+    .form-group label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px; color: #475569; }
+    .form-control { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
+    .btn-primary { width: 100%; padding: 12px; background: #1e3a8a; border: none; border-radius: 8px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 15px; }
+    .btn-secondary { width: 100%; padding: 10px; background: #64748b; border: none; border-radius: 8px; color: white; font-size: 14px; font-weight: 600; text-align: center; text-decoration: none; display: block; margin-top: 10px; box-sizing: border-box; }
+  </style>
 </head>
-<body class="bg-light">
-
-    <nav class="navbar navbar-dark bg-dark mb-4">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="/">🎓 Student Management System</a>
-            <a href="/" class="btn btn-outline-light btn-sm">← Back to Dashboard</a>
+<body>
+  <div class="card">
+    <h2>NEW STUDENT ENTRY</h2>
+    <form action="/add_student" method="POST">
+      <div class="section-title">Personal Information</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Student Name</label>
+          <input type="text" name="name" class="form-control" placeholder="John Doe" required>
         </div>
-    </nav>
-
-    <div class="container d-flex justify-content-center">
-        <div class="card shadow-sm border-0" style="width: 500px;">
-            <div class="card-header bg-primary text-white fw-bold py-3">
-                <h5 class="mb-0">➕ Add Student & Mark Attendance</h5>
-            </div>
-            <div class="card-body p-4">
-                <form action="/add" method="POST">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Date</label>
-                        <input type="date" name="date" class="form-control" value="{{ today_date }}" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Full Name</label>
-                        <input type="text" name="name" class="form-control" placeholder="e.g. Swathi Mankani" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Roll Number</label>
-                        <input type="text" name="roll" class="form-control" placeholder="e.g. 101" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Marks (0 to 100)</label>
-                        <input type="number" name="marks" class="form-control" min="0" max="100" placeholder="e.g. 85" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Attendance Status</label>
-                        <select name="attendance" class="form-select">
-                            <option value="Present" selected>Present</option>
-                            <option value="Absent">Absent</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Save Student Record</button>
-                </form>
-            </div>
+        <div class="form-group">
+          <label>Roll Number / ID</label>
+          <input type="text" name="student_id" class="form-control" placeholder="103" required>
         </div>
-    </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" name="email" class="form-control" placeholder="john@example.com" required>
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="text" name="phone" class="form-control" placeholder="+91 9876543210" required>
+        </div>
+      </div>
 
+      <div class="section-title">Academic Information</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Department</label>
+          <select name="department" class="form-control" required>
+            <option value="Computer Science">Computer Science</option>
+            <option value="Information Science">Information Science</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Mechanical">Mechanical</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Course</label>
+          <select name="course" class="form-control" required>
+            <option value="B.E. CS">B.E. CS</option>
+            <option value="B.Tech IT">B.Tech IT</option>
+            <option value="B.E. ECE">B.E. ECE</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Admission Date</label>
+        <input type="date" name="admission_date" class="form-control" required>
+      </div>
+
+      <button type="submit" class="btn-primary">SAVE STUDENT RECORD</button>
+      <a href="/dashboard" class="btn-secondary">CANCEL / BACK TO DASHBOARD</a>
+    </form>
+  </div>
 </body>
 </html>
