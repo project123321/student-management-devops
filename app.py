@@ -1,93 +1,132 @@
-import os
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session
+from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = "student_management_secret_key"
+app.secret_key = 'supersecretkey123'
 
-# Application version (configurable via environment variable)
-APP_VERSION = os.getenv("APP_VERSION", "v1.0.0")
+# In-memory user credentials (Name & Password as requested)
+users = {"admin": "password123"}
 
-# In-memory storage for simplicity
-users = {"admin": "admin123"}  # Pre-registered admin account
-attendance_records = [
-    {"student_name": "Rahul Sharma", "roll_no": "101", "date": "2026-08-30", "status": "Present"},
-    {"student_name": "Priya Patel", "roll_no": "102", "date": "2026-08-30", "status": "Absent"}
+# Student records
+students = [
+    {"id": 1, "name": "Swathi Mankani", "roll": "101", "date": "2026-09-01", "attendance": "Present", "marks": 85, "grade": "A"},
+    {"id": 2, "name": "Rahul Sharma", "roll": "102", "date": "2026-09-01", "attendance": "Absent", "marks": 42, "grade": "F"}
 ]
 
-@app.context_processor
-def inject_version():
-    return dict(app_version=APP_VERSION)
-
-@app.route("/")
-def index():
-    if "username" in session:
-        return redirect(url_for("dashboard"))
-    return redirect(url_for("login"))
-
-@app.route("/login", methods=["GET", "POST"])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-        
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
         if username in users and users[username] == password:
-            session["username"] = username
-            return redirect(url_for("dashboard"))
+            session['user'] = username
+            return redirect(url_for('index'))
         else:
-            flash("Invalid username or password!", "danger")
-            
-    return render_template("login.html")
+            error = "Invalid Name or Password!"
+    return render_template('login.html', error=error)
 
-@app.route("/register", methods=["GET", "POST"])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-        
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+
         if username in users:
-            flash("Username already exists!", "danger")
-        elif not username or not password:
-            flash("All fields are required!", "danger")
-        else:
+            error = "Name already exists!"
+        elif password != confirm_password:
+            error = "Passwords do not match!"
+        elif username and password:
             users[username] = password
-            flash("Registration successful! Please login.", "success")
-            return redirect(url_for("login"))
-            
-    return render_template("register.html")
+            return redirect(url_for('login'))
+        else:
+            error = "Please fill in all fields."
+    return render_template('register.html', error=error)
 
-@app.route("/dashboard")
-def dashboard():
-    if "username" not in session:
-        return redirect(url_for("login"))
-    return render_template("dashboard.html", username=session["username"], records=attendance_records)
-
-@app.route("/mark-attendance", methods=["POST"])
-def mark_attendance():
-    if "username" not in session:
-        return redirect(url_for("login"))
-        
-    student_name = request.form.get("student_name")
-    roll_no = request.form.get("roll_no")
-    date = request.form.get("date")
-    status = request.form.get("status")
-    
-    if student_name and roll_no and date and status:
-        attendance_records.append({
-            "student_name": student_name,
-            "roll_no": roll_no,
-            "date": date,
-            "status": status
-        })
-        flash("Attendance marked successfully!", "success")
-    else:
-        flash("Please fill all attendance details!", "danger")
-        
-    return redirect(url_for("dashboard"))
-
-@app.route("/logout")
+@app.route('/logout')
 def logout():
-    session.pop("username", None)
-    return redirect(url_for("login"))
+    session.clear()
+    return redirect(url_for('login'))
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+@app.route('/')
+def index():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    total_students = len(students)
+    present_count = sum(1 for s in students if s['attendance'] == 'Present')
+    absent_count = sum(1 for s in students if s['attendance'] == 'Absent')
+
+    return render_template('dashboard.html', 
+                           students=students, 
+                           total=total_students, 
+                           present=present_count, 
+                           absent=absent_count)
+
+@app.route('/add', methods=['GET', 'POST'])
+def add_student():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        name = request.form.get('name')
+        roll = request.form.get('roll')
+        date = request.form.get('date') or datetime.now().strftime('%Y-%m-%d')
+        marks = request.form.get('marks', 0)
+        attendance = request.form.get('attendance', 'Present')
+
+        try:
+            marks = int(marks)
+        except ValueError:
+            marks = 0
+
+        # Feature 2: Automated Grade Calculation
+        if marks >= 85:
+            grade = 'A+'
+        elif marks >= 70:
+            grade = 'A'
+        elif marks >= 50:
+            grade = 'B'
+        elif marks >= 35:
+            grade = 'C'
+        else:
+            grade = 'F'
+
+        if name and roll:
+            new_id = max([s['id'] for s in students], default=0) + 1
+            students.append({
+                "id": new_id,
+                "name": name,
+                "roll": roll,
+                "date": date,
+                "attendance": attendance,
+                "marks": marks,
+                "grade": grade
+            })
+            return redirect(url_for('index'))
+
+    today_date = datetime.now().strftime('%Y-%m-%d')
+    return render_template('add_student.html', today_date=today_date)
+
+@app.route('/toggle_attendance/<int:student_id>')
+def toggle_attendance(student_id):
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    for student in students:
+        if student['id'] == student_id:
+            student['attendance'] = "Absent" if student['attendance'] == "Present" else "Present"
+            break
+    return redirect(url_for('index'))
+
+@app.route('/delete/<int:student_id>')
+def delete_student(student_id):
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    global students
+    students = [s for s in students if s['id'] != student_id]
+    return redirect(url_for('index'))
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
