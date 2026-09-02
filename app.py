@@ -10,7 +10,6 @@ if os.environ.get('GITHUB_ACTIONS') == 'true' or app.config.get('TESTING'):
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:sql%40123@localhost/student_db'
-
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
